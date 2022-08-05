@@ -195,31 +195,95 @@ public class PizzaDAOJdbcImpl implements DAO<Pizza> {
 	@Override
 	public void update(Pizza pizza) throws DALException {
 
-//		Connection con = null; 
-//		String sql = "UPDATE Pizzas(nom_pizza) "
-//				+ "SET nom_pizza = ? "
-//				+ "WHERE id_pizza = ?"; 
-//		
-//		List<Ingredient> listeIngredients = pizza.getIngredients();
-//		PreparedStatement stmt = null; 
-//		ResultSet rs = null;
-//		
-//		try {
-//			con = JdbcTools.getConnection();
-//			stmt = con.prepareStatement(sql);
-//			stmt.setInt(1, pizza.getIdPizza());
-//			stmt.executeUpdate();
-//			//TODO UPDATE INGREDIENTS
-//		} catch (SQLException ex) {
-//			throw new DALException("erreur update", ex); 
-//		}
+		Connection con = null; 
+		String sql = "DELETE FROM Ingredients_Pizza WHERE id_pizza = ? ";
+		String updateNom = "UPDATE Pizzas SET nom_pizza = ? WHERE id_pizza = ? ";
+		String sql2 = "INSERT INTO Ingredients(nom_ingredient) " + "VALUES (?)";
+		String select = "SELECT id_ingredient FROM Ingredients " + "WHERE nom_ingredient = ?";
+		String sql3 = "INSERT INTO Ingredients_Pizza(id_pizza, id_ingredient) " + "VALUES (?, ?)";
+		PreparedStatement stmt = null;
+		PreparedStatement stmtupdate = null;
+		PreparedStatement stmt2 = null;
+		PreparedStatement selectstmt = null;
+		PreparedStatement stmt3 = null;
+		ResultSet rs2 = null;
+		ResultSet rs3 = null;
+		
+		try {
+			con = JdbcTools.getConnection();
+			
+			//Suppression liaisons
+			stmt = con.prepareStatement(sql);
+			stmt.setInt(1, pizza.getIdPizza());
+			stmt.executeUpdate();
+			// Update nom pizza
+			stmtupdate = con.prepareStatement(updateNom);
+			stmtupdate.setString(1, pizza.getNom());
+			stmtupdate.setInt(2, pizza.getIdPizza());
+			stmtupdate.executeUpdate();
+			
+			//INSERT Ingrédients
+			List<Ingredient> listeIngredients = pizza.getIngredients();
+			selectstmt = con.prepareStatement(select);
+			stmt2 = con.prepareStatement(sql2, Statement.RETURN_GENERATED_KEYS);
+			stmt3 = con.prepareStatement(sql3);
+			
+			for (Ingredient in : listeIngredients) {
+
+				selectstmt.setString(1, in.getNom());
+				rs2 = selectstmt.executeQuery(); 
+
+				if (!rs2.next()) {
+
+					stmt2.setString(1, in.getNom());
+
+					int nbLignesIng = stmt2.executeUpdate();
+					if (nbLignesIng == 1) {
+						rs3 = stmt2.getGeneratedKeys();
+						if (rs3.next()) {
+							in.setIdIngredient(rs3.getInt(1));
+						}
+					}
+				} else {
+					in.setIdIngredient(rs2.getInt("id_ingredient"));
+				}
+
+				// INSERT TABLE Ingredients_Pizza
+				
+				stmt3.setInt(1, pizza.getIdPizza());
+				stmt3.setInt(2, in.getIdIngredient());
+
+				stmt3.executeUpdate();
+			}
+			
+			
+			
+		} catch (SQLException ex) {
+			throw new DALException("Erreur Update", ex); 
+		}
+		
+		
 		
 	}
 
 	@Override
 	public void delete(Pizza pizza) throws DALException {
 
-		//TODO
+		Connection con = null;
+		PreparedStatement stmt = null;
+		String sql = "DELETE FROM Pizzas WHERE id_pizza = ?";
+		
+		try {
+			con = JdbcTools.getConnection();
+			stmt = con.prepareStatement(sql); 
+			stmt.setInt(1, pizza.getIdPizza());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			throw new DALException("Erreur Delete", ex); 
+		} finally {
+			JdbcTools.close(stmt);
+			JdbcTools.close(con);
+		}
 	}
 
 }

@@ -1,0 +1,25 @@
+USE PIZZERIA_DB
+GO
+
+CREATE TABLE Pizzas (
+id_pizza int IDENTITY(1,1) NOT NULL,
+nom_pizza VARCHAR(50) NOT NULL,
+CONSTRAINT PK_Pizzas PRIMARY KEY(id_pizza),
+CONSTRAINT UN_Pizzas_nom_pizza UNIQUE(nom_pizza)
+)
+
+CREATE TABLE Ingredients (
+id_ingredient int IDENTITY(1,1) NOT NULL,
+nom_ingredient VARCHAR(50) NOT NULL,
+CONSTRAINT PK_Ingredients PRIMARY KEY(id_ingredient),
+CONSTRAINT UN_Ingredients_nom_ingredient UNIQUE(nom_ingredient)
+)
+
+CREATE TABLE Ingredients_Pizza (
+id_pizza int NOT NULL, 
+id_ingredient int NOT NULL, 
+CONSTRAINT FK_Ingredients_Pizza_Pizza FOREIGN KEY (id_pizza) REFERENCES Pizzas(id_pizza) ON DELETE CASCADE,
+CONSTRAINT FK_Ingredients_Pizza_Ingredients FOREIGN KEY (id_ingredient) REFERENCES Ingredients(id_ingredient) ON DELETE CASCADE
+)
+
+GO
