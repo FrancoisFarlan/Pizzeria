@@ -260,6 +260,15 @@ public class PizzaDAOJdbcImpl implements DAO<Pizza> {
 			
 		} catch (SQLException ex) {
 			throw new DALException("Erreur Update", ex); 
+		} finally {
+			JdbcTools.close(rs3);
+			JdbcTools.close(rs2);
+			JdbcTools.close(stmt3);
+			JdbcTools.close(selectstmt);
+			JdbcTools.close(stmt2);
+			JdbcTools.close(stmtupdate);
+			JdbcTools.close(stmt);
+			JdbcTools.close(con);
 		}
 		
 		
